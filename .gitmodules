@@ -1,0 +1,3 @@
+[submodule "enn583"]
+	path = enn583
+	url = git@github.com:nikosuenderhauf/enn583.git
