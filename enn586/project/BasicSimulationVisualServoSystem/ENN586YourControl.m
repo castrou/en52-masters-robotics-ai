@@ -15,4 +15,20 @@
 
 %Can use "YourVariables" to store information needed in different loops
  
-uactual = -control.gain*pinv(Ja(:,control.dof))*e.actual;
+
+
+
+YourVariables.var1=YourVariables.var1+pinv(Ja(:,control.dof))*e.actual;
+
+if YourVariables.first==1
+    Derror2=pinv(Ja(:,control.dof))*zeros(size(e.actual));
+    YourVariables.first=0;
+else
+     Derror2=pinv(Ja(:,control.dof))*e.actual-YourVariables.error_old;
+end
+
+YourVariables.error_old=pinv(Ja(:,control.dof))*e.actual;
+
+uactual =-YourVariables.gainP*pinv(Ja(:,control.dof))*e.actual-YourVariables.gainD*Derror2+YourVariables.gainI*YourVariables.var1; 
+
+YourVariables.disturbance_est=YourVariables.gainI*YourVariables.var1;

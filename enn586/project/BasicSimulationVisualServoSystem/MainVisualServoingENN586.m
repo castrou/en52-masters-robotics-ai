@@ -37,12 +37,20 @@ clc
 % start_case=1; % etc.
 
 %  ENN568 Student: You may change the next 3 lines to change test case, start pose, and simluation length 
-test_case=1;    % there are 6 cases
+test_case=8;    % there are 6 cases
 start_case=4;   % there are 4 start pose case
 
-simulation_length=40;  %length in s.
+
+
+simulation_length=100;  %length in s.
 YourVariables.var1=zeros(6,1);   % a structure (or variables) you can pass between functions.  You can relabel the var1 field and add fields as you like.
- 
+YourVariables.error_old=zeros(1,1);
+YourVariables.first=1;
+YourVariables.gainI=-0.00025;
+YourVariables.gainD=-0.1;
+YourVariables.gainP=0.1;
+YourVariables.varv=YourVariables.var1;
+
 
 %  ENN568 Student: Do not modify anything below, except you may edit inside ENN586YourControl.m
 

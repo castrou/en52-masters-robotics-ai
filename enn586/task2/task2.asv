@@ -1,0 +1,56 @@
+clear;
+close all;
+
+T = 1000; % no. time instants
+dT = 1;
+
+A = [1, 0, dT, 0;
+     0, 1, 0, dT;
+     0, 0, 1, 0;
+     0, 0, 0, 1]
+
+sig_x = 0;
+sig_y = 0;
+sig_dx = 0.01;
+sig_dy = 0.01;
+R = 10
+Q = [sig_x, 0, 0, 0;
+     0, sig_y, 0, 0;
+     0, 0, sig_dx, 0;
+     0, 0, 0, sig_dy;]
+H = [eye(2), zeros(2)];
+
+x = zeros(T,4);
+y = zeros(T,2);
+x_0 = [10000, 10000, 1, 0]';
+x_hat = zeros(T,4);
+x_hat(1, :) = x_0 + [100, 100, 0.1, -0.1]';
+
+P_next = 1000 * eye(4);
+
+for k = 1:T
+    P_k = P_next;
+    x_pred, P_pred = kalman_predict(A, x)
+    x_hat()
+    % x_hat(k, :), P_next = kalman_update(A, x_hat(k-1,:), y, P_k, R, Q, H)
+end
+
+%% Kalman Time Update
+function x_pred, P_pred = kalman_predict(A_prev, x_prev, P_prev, Q_prev)
+    x_pred = A_prev.*x_prev;
+    P_pred = A_prev.*P_prev.*A_prev' + Q_prev
+end
+
+%% Kalman Meas Update
+function x, P = kalman_measure(x_pred, P_pred, z, H)
+    K = P_pred.*H'.*inv(H.*P_pred.*H'+R);
+    x = x_pred + K.*(z-H.*x_pred);
+    P = (eye(4) - K.*H).*P_pred;
+end
+
+%% Compact Representation Kalman Update
+function x_hat_k, P_next_pred = kalman_update(A_prev, x_hat_prev, y, P_pred, R, Q, H)
+    K = inv(P_pred .* H' .* (H.*P_pred.*H' + R));
+    x_hat = A_prev .* x_hat_prev + K.*(y - H.*A_prev.*x_hat_prev);
+    P_next_pred = A .* (P_pred - K.*H.*P_pred).*A' + Q;
+end
