@@ -73,26 +73,28 @@ def get_next_workspace_config(q, qlim, dTheta, joint_idx):
 def robotWorkspace(qlimits):
     '''
     Write a csv file with the x,y,z coordinates within the robot's workspace. \
-    Plots coordinate with resolution 10 points per joint
-    
+    Joints have a resolution (degrees) of: 
+        [1 15 15 15 15 N/A]
+        
         Parameters:
             qlimits (np.array): 2D numpy array of min/max angle limits (rad) of joints
             
         Returns:
             numpy array of coordinates the robot can reach (1 degree resolution)
     '''
-    number_points = 10
+    # number_points = 10
     q_start = np.asarray([lim for lim in qlimits[0,:]])
     q = q_start.copy()
-    dTheta = np.array([(qlim[1]-qlim[0]) * (1/number_points) for qlim in qlimits.transpose()])
+    # dTheta = np.array([(qlim[1]-qlim[0]) * (1/number_points) for qlim in qlimits.transpose()])
+    dTheta = [math.radians(5), math.radians(20), math.radians(20), math.radians(20), math.radians(20), math.radians(qlimits[1, 5])]
     
     coords = []
     while True:
-        q = get_next_workspace_config(q, qlimits, dTheta, 0)
-        if np.allclose(q, q_start, atol=math.radians(1)):
-            break
         pos = robotFK(q).t
         coords.append((pos[0], pos[1], pos[2]))
+        q = get_next_workspace_config(q, qlimits, dTheta, 0)
+        if np.allclose(q, q_start, atol=math.radians(0.5)):
+            break
     
     with open('workspace.csv', 'w') as csv:
         for coord in coords:
@@ -120,25 +122,8 @@ def get_joint_pose(idx: int):
     return T
 
 if __name__ == '__main__':
-    # robotWorkspace(qlim)
-    # T = sm.SE3.Trans(2,2,2) @ sm.SE3.Rx(90, 'deg')
-    # q = robotIK(T).q
-    # robotFK(q)
-    
-    testRobot = rtb.Robot(ets, urdf_filepath='2-1.urdf')
-    axis1 = sg.Axes(1)
-    
-    env = Swift()
-    env.launch(realtime=True)
-    env.add(testRobot)
-    env.add(axis1)
-    
-    
-    print(robot)
-    robot.q = [0 for _ in range(len(robot.q))]
-    
-    axis1.T = robotFK(robot.q)
-    
-    env.step(0)
-    env.hold()
+    robotWorkspace(qlim)
+    T = sm.SE3.Trans(2,2,2) @ sm.SE3.Rx(90, 'deg')
+    q = robotIK(T).q
+    robotFK(q)
     
