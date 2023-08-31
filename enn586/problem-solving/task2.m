@@ -1,6 +1,9 @@
 clear;
 close all;
 
+rng(42);
+
+%% init
 T = 1000; % no. time instants
 dT = 1;
 
@@ -23,14 +26,18 @@ H = [eye(2), zeros(2)];
 x = zeros(T, 4);
 y = zeros(T, 2);
 x_0 = [10000, 10000, 1, 0];
+x_hat = zeros(T, 4);
+x_hat(1, :) = x_0 + [100, 100, 0.1, -0.1];
 
 P_next = 1000 * eye(4);
 
 y_0 = x_0(:, 1:2);
+
+
+%% 2.1 Data Generation
 [x, y] = measurement_sequence(T, x_0, y_0, A, H, Q, R);
 noise = x(:, 1:2)-y;
 
-%% 2.1 Data Generation
 figure Name '2.1 Data Gen'
 subplot(2, 2, 1);
 title("Raw Position (X_{truth}[1] vs X_{truth}[2])");
@@ -53,9 +60,26 @@ hold on
 plot(1:T, noise(:,1)');
 
 %% 2.2 Kalman Filter
-x_hat = kf(T)
+for k = 2:T
+    P_prev = P_next;
+    [x_pred, P_pred] = kalman_predict(A, x_hat(k-1, :), P_prev, Q);
+    z_k = y(k, :);
+    [x_hat(k, :), P_next] = kalman_measure(x_pred, P_pred, z_k, H, R);
+end
 
+%% Plot
+figure();
+subplot(2,1,1);
+plot(1:T,x(:,1),1:T,x_hat(:,1),1:T,y(:,1));
+legend('True','KF Estimate','Measured')
+ylabel('x_1');
+subplot(2,1,2);
+plot(1:T,x(:,2),1:T,x_hat(:,2),1:T,y(:,2));
+xlabel('Time [s]');
+ylabel('x_2');
 
+err_sq = (x_hat - x).^2;
+rms = sqrt(1/T * sum(err_sq))
 
 %% Data Generation
 function [x_truth, y_meas] = measurement_sequence(len, x_0, y_0, A, H, Q, R)
@@ -66,19 +90,7 @@ function [x_truth, y_meas] = measurement_sequence(len, x_0, y_0, A, H, Q, R)
     y_meas(1, :) = y_0;
     for k = 2:len
         x_truth(k, :) = A * x_truth(k-1, :)' + Q*randn([4 1]);
-        y_meas(k, :) = H * x_truth(k, :)' + R*randn([2 1]);
-    end
-end
-
-%% Kalman Filter Sequence
-function x_hat = kalman_sequence(T, x_hat_0)
-    x_hat = zeros(T, 4);
-    x_hat
-    for k = 2:T
-        P_prev = P_next;
-        [x_pred, P_pred] = kalman_predict(A, x_hat(k-1, :), P_prev, Q);
-        z_k = y(k, :);
-        [x_hat(k, :), P_next] = kalman_measure(x_pred, P_pred, z_k, H, R);
+        y_meas(k, :) = H * x_truth(k, :)' + sqrtm(R*randn([2 1]));
     end
 end
 
@@ -93,11 +105,4 @@ function [x_est, P] = kalman_measure(x_pred, P_pred, z, H, R)
     K = P_pred*H'*inv(H*P_pred*H'+R);
     x_est = x_pred + (K*(z'-H*x_pred'))';
     P = (eye(4) - K*H)*P_pred;
-end
-
-%% Compact Representation Kalman Update
-function [x_hat_k, P_next_pred] = kalman_update(A_prev, x_hat_prev, y, P_pred, R, Q, H)
-    K = inv(P_pred .* H' .* (H.*P_pred.*H' + R));
-    x_hat = A_prev .* x_hat_prev + K.*(y - H.*A_prev.*x_hat_prev);
-    P_next_pred = A .* (P_pred - K.*H.*P_pred).*A' + Q;
 end
