@@ -14,21 +14,15 @@
 % uactual = -control.gain*pinv(Ja(:,control.dof))*e.actual;
 
 %Can use "YourVariables" to store information needed in different loops
- 
+kf = YourVariables.kf;
 
+[kf.e_est, kf.P_prev] = kf.measure(kf.e_pred, kf.P_pred, e.actual, kf.H, kf.R);
+B = Ja(:,control.dof)*YourVariables.dt;
+uactual = -control.gain*pinv(Ja(:,control.dof))*kf.e_est;
 
+kf.B_prev = B;
+kf.u_prev = uactual;
 
-YourVariables.var1=YourVariables.var1+pinv(Ja(:,control.dof))*e.actual;
+[kf.e_pred kf.P_pred] = kf.predict(kf.A, kf.e_est, kf.B_prev, kf.u_prev, kf.P_prev, kf.Q);
 
-if YourVariables.first==1
-    Derror2=pinv(Ja(:,control.dof))*zeros(size(e.actual));
-    YourVariables.first=0;
-else
-     Derror2=pinv(Ja(:,control.dof))*e.actual-YourVariables.error_old;
-end
-
-YourVariables.error_old=pinv(Ja(:,control.dof))*e.actual;
-
-uactual =-YourVariables.gainP*pinv(Ja(:,control.dof))*e.actual-YourVariables.gainD*Derror2+YourVariables.gainI*YourVariables.var1; 
-
-YourVariables.disturbance_est=YourVariables.gainI*YourVariables.var1;
+YourVariables.kf = kf;

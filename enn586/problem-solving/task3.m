@@ -25,49 +25,79 @@ Q = [sig_x, 0, 0, 0;
 
 x_0 = [10000, 10000, 1, 0];
 y_0 = x_0(:, 1:2);
-x_hat = zeros(T, 4);
-x_hat(1, :) = x_0 + [100, 100, 0.1, -0.1];
-
-P_next = 0.1 * eye(4);
+P_0 = 0.1 * eye(4);
 
 %% 3.1 Data Generation
-[x, y] = nonlin_measurement_sequence(T, x_0, y_0, A, Q, R);
+[x, y] = nonlin_measurement_sequence(T, x_0, A, Q, R);
 
 %% 3.2 EKF
+x_hat = zeros(T, 4);
+x_hat(1, :) = x_0 + [100, 100, 0.1, -0.1];
+P_next = P_0;
+
 for k = 2:T
     P_prev = P_next;
     [x_pred, P_pred] = ekf_predict(A, x_hat(k-1, :), P_prev, Q);
     z_k = y(k, :);
     [x_hat(k, :), P_next] = ekf_measure(x_pred, P_pred, z_k, R);
 end
-
+% err
 err_sq = (x_hat - x).^2;
-rms = sqrt(1/T * sum(err_sq))
+rms = sqrt(1/T * sum(err_sq));
 
-%% Plot
-figure();
-plot(x(:,1),x(:,2),x_hat(:,1),x_hat(:,2),y(:,1).*cos(y(:,2)), y(:,1).*sin(y(:,2)));
-% plot(x(:,1),x(:,2),'*',y(:,1).*cos(y(:,2)), y(:,1).*sin(y(:,2)));
+% Plot
+figure Name 'Absolute XY Plot'
+    plot(x(:,1),x(:,2),x_hat(:,1),x_hat(:,2),y(:,1).*cos(y(:,2)), y(:,1).*sin(y(:,2)));
+    legend('True','EKF Estimate','Measured')
+    title('XY Plot')
 
-legend('True','EKF Estimate','Measured')
-ylabel('x_1');
-figure()
-plot(1:T,x(:,2),1:T,x_hat(:,2),1:T,y(:,1).*sin(y(:,2)));
-xlabel('Time [s]');
-ylabel('x_2');
+figure Name 'Component Plots'
+    subplot(2,1,1);
+    plot(1:T,x(:,2),1:T,x_hat(:,2),1:T,y(:,1).*sin(y(:,2)));
+    legend('True','EKF Estimate','Measured')
+    title('X Component')
+    subplot(2,1,2);
+    plot(1:T,x(:,2),1:T,x_hat(:,2),1:T,y(:,1).*sin(y(:,2)));
+    legend('True','EKF Estimate','Measured')
+    title('Y Component')
+
+%% 3.3 Parametric Study Area
+% Just change these values to perform study
+% xhat_0 = -x_0;
+% P_0 = 10000 * eye(4);
+% x_hat = ekf_seq(T, y, xhat_0, P_0, A, Q, R);
+% % err
+% err_sq = (x_hat - x).^2;
+% rms = sqrt(1/T * sum(err_sq))
+% 
+% figure Name 'Absolute XY Plot'
+%     plot(x(:,1),x(:,2),x_hat(:,1),x_hat(:,2),y(:,1).*cos(y(:,2)), y(:,1).*sin(y(:,2)));
+%     legend('True','EKF Estimate','Measured')
+%     title('XY Plot')
+% 
+% figure Name 'Component Plots'
+%     subplot(2,1,1);
+%     plot(1:T,x(:,2),1:T,x_hat(:,2),1:T,y(:,1).*sin(y(:,2)));
+%     legend('True','EKF Estimate','Measured')
+%     title('X Component')
+%     subplot(2,1,2);
+%     plot(1:T,x(:,2),1:T,x_hat(:,2),1:T,y(:,1).*sin(y(:,2)));
+%     legend('True','EKF Estimate','Measured')
+%     title('Y Component')
+
 
 %% Functions
 %% %% Data Generation
-function [x_truth, y_meas] = nonlin_measurement_sequence(len, x_0, y_0, A, Q, R)
+function [x_truth, y_meas] = nonlin_measurement_sequence(len, x_0, A, Q, R)
     x_truth = zeros([len 4]);
     y_meas = zeros([len 2]);
     
     x_truth(1, :) = x_0;
-    y_meas(1, :) = [sqrt(y_0(1)^2 + y_0(2)^2); atan2(y_0(2),y_0(1))];
+    y_meas(1, :) = [sqrt(x_0(1)^2 + x_0(2)^2), atan2(x_0(2),x_0(1))];
     for k = 2:len
         x_truth(k, :) = A * x_truth(k-1, :)' + sqrt(Q)*randn([4 1]);
         H = [sqrt(x_truth(k,1)^2 + x_truth(k,2)^2); atan2(x_truth(k,2),x_truth(k,1))];
-        y_meas(k, :) = H + sqrt(R)*randn([2 1]);
+        y_meas(k, :) = (H + sqrt(R)*randn([2 1]))';
     end
 end
 
@@ -83,8 +113,19 @@ function [x_est, P] = ekf_measure(x_pred, P_pred, z, R)
     Hbar = [ x_pred(1)/sqrt(x_pred(1)^2 + x_pred(2)^2), x_pred(2)/sqrt(x_pred(1)^2 + x_pred(2)^2), 0, 0;
             -x_pred(2)/(x_pred(1)^2 + x_pred(2)^2), x_pred(2)/(x_pred(1)^2 + x_pred(2)^2), 0, 0];
     K = P_pred*Hbar'*inv(Hbar*P_pred*Hbar'+R);
-    % x_est = x_pred + (K*(z'-Hbar*x_pred'))'; 
     x_est = x_pred + (K*(z'-h))'; 
     P = P_pred - K*Hbar*P_pred;
 end
 
+%% %% EKF Sequence
+function x_hat = ekf_seq(T, y, x_0, P_0, A, Q, R)
+    x_hat = zeros(T, 4);
+    x_hat(1, :) = x_0 + [100, 100, 0.1, -0.1];
+    P_next = P_0;
+    for k = 2:T
+        P_prev = P_next;
+        [x_pred, P_pred] = ekf_predict(A, x_hat(k-1, :), P_prev, Q);
+        z_k = y(k, :);
+        [x_hat(k, :), P_next] = ekf_measure(x_pred, P_pred, z_k, R);
+    end
+end

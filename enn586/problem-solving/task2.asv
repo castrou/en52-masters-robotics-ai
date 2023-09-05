@@ -32,16 +32,6 @@ x_hat(1, :) = x_0 + [100, 100, 0.1, -0.1];
 P = 1000 * eye(4);
 P_next = P;
 
-%% Model mismatches
-delta_A = A * 0.1;
-delta_H = H * 0.1;
-delta_Q = Q;
-delta_R = R;
-A_kalman = A + delta_A; 
-H_kalman = H + delta_H;  
-Q_true = Q + delta_Q;
-R_true = R + delta_R;
-
 %% 2.1 Data Generation
 [x, y] = measurement_sequence(T, x_0, y_0, A, H, Q, R);
 noise = x(:, 1:2)-y; % not particularly useful, though confirmed random noise was okay

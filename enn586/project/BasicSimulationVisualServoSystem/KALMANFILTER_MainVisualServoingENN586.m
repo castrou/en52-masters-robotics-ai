@@ -24,8 +24,6 @@ clear all
 close all
 clc
 
-rng(42);
-
 %%
 % There are a number of test cases for you to examine
 % test_case=1; %No error, no measurement noise case
@@ -39,23 +37,12 @@ rng(42);
 % start_case=1; % etc.
 
 %  ENN568 Student: You may change the next 3 lines to change test case, start pose, and simluation length 
-test_case=6;    % there are 6 cases
-start_case=4;   % there are 4 start pose case
+test_case=1;    % there are 6 cases
+start_case=1;   % there are 4 start pose case
 
 simulation_length=100;  %length in s.
 YourVariables.T = simulation_length;
 YourVariables.dt = 0.1;
-
-% pid controller
-simulation_length=100;  %length in s.
-YourVariables.var1=zeros(6,1);   % a structure (or variables) you can pass between functions.  You can relabel the var1 field and add fields as you like.
-YourVariables.error_old=zeros(1,1);
-YourVariables.first=1;
-YourVariables.gainI=-0.0009;
-YourVariables.gainD=-0.3;
-YourVariables.gainP=0.3;
-YourVariables.varv=YourVariables.var1;
-
 % Kalman Filter
 YourVariables.kf.A = eye(8);
 YourVariables.kf.R = 25;
