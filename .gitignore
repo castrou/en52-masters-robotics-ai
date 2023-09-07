@@ -1,7 +1,6 @@
 # chunky boi
 enn581/software_task1/workspace.csv
-enn586/problem-solving/*_out
-enn586/project/*.png
+*.png
 
 # Byte-compiled / optimized / DLL files
 __pcache__/
