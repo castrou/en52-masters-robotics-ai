@@ -4,21 +4,24 @@ import roboticstoolbox as rtb
 import spatialmath as sm
 
 ############## Robot Definition ################################################
+H1=1
+L1=0.6
+L2=0.3
 robot = rtb.Robot(rtb.ETS([
-    rtb.ET.Rz(jindex=0),
-    rtb.ET.tz(1),
-    rtb.ET.tx(0.6),
-    rtb.ET.Rz(jindex=1),
-    rtb.ET.tx(0.3),
+    rtb.ET.Rz(),
+    rtb.ET.tz(H1),
+    rtb.ET.tx(L1),
+    rtb.ET.Rz(),
+    rtb.ET.tx(L2),
     rtb.ET.Rx(180, unit='deg'),
-    rtb.ET.tz(jindex=2)
+    rtb.ET.tz()
 ]))
 
 qlim = np.array([
-    [0, 2*np.pi],
-    [0, 2*np.pi],
+    [-2*np.pi, 2*np.pi],
+    [-2*np.pi, 2*np.pi],
     [0.3, 1]
-    ], dtype=float).transpose()
+], dtype=float).transpose()
 
 robot.qlim = qlim
 
@@ -38,13 +41,13 @@ class HeartCurve:
         return np.array([self.x(t), self.y(t), self.z(t)])
         
     def x(self, t):
-        return self.g*(2*np.cos(t) - np.cos(2*t))
+        return self.g*(2*np.cos(t) - np.cos(2*t))*0.01
     
     def y(self, t):
-        return self.g*(2*np.sin(t) - np.sin(2*t))
+        return self.g*(2*np.sin(t) - np.sin(2*t))*0.01
     
     def z(self, t):
-        return 0.1*self.g*t
+        return 0.1*self.g*t*0.01
 
 ############## MAIN ############################################################
 
@@ -53,35 +56,35 @@ if __name__ == '__main__':
     num_pts= 50
     tf = 10
     dt = tf / num_pts
-    path = HeartCurve(g=0.3) # scale g to SI units
+    path = HeartCurve(g=30) # scale g to SI units
         
+    # Init robot
+    robot.qr = [-2.54734843,  5.08853151,  0.93675007]
+    home_pose = robot.fkine(robot.qr)
+    joint_pose = robot.fkine_all(robot.qr)
+    joint_pt = np.array([pose.t for pose in joint_pose[1:]])
+    
     # Ideal Curve Plot
     curve = path(num_pts, tf)
     fig = plt.figure()
     fig.suptitle('Goal Curve')
     ax = fig.add_subplot(projection='3d')
     ax.scatter(curve[:,0], curve[:,1], curve[:,2], marker='o')
+    ax.scatter(joint_pt[:,0], joint_pt[:,1], joint_pt[:,2], marker='o', color='blue')
     ax.set_xlabel('X Position')
     ax.set_ylabel('Y Position')
     ax.set_zlabel('Z Position')
     
-    # Initialise robot pose
-    robot.qr = [0, 0, 0.3]
-    home_pose = robot.fkine(robot.qr)
-    xrange = max(curve[:,0]) - min(curve[:,0])
-    yrange = max(curve[:,1]) - min(curve[:,1])
-    base_pose = home_pose @ sm.SE3.Trans([xrange/2, yrange/2, 0])
-    print(base_pose)
-    
     # Get joint angles
     q_vias = np.empty((0,3))
-    for pt in curve:
-        ik = robot.ik_NR(np.transpose(base_pose) * sm.SE3.Trans(pt))
-        print(ik[0])
+    traj_rel = []
+    for i, pt in enumerate(curve[1:]):
+        ik = robot.ik_NR(pt, tol=0.1, pinv=True)
+        print(f'Point: {pt} Sol: {ik[0]}')
         q_vias = np.vstack((q_vias, ik[0]))
     
     # Fit curve
-    q_traj = rtb.mstraj(q_vias, dt=dt, tacc=1, tsegment=[dt for _ in range(len(q_vias)-1)])
+    q_traj = rtb.mstraj(q_vias, dt=dt/50, tacc=0.1, tsegment=[2*dt for _ in range(len(q_vias[:-1]))])
     
     # Plot
     ee_traj = np.empty((0,3))

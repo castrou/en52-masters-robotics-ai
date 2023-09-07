@@ -40,7 +40,7 @@ rng(42);
 
 %  ENN568 Student: You may change the next 3 lines to change test case, start pose, and simluation length 
 test_case=6;    % there are 6 cases
-start_case=4;   % there are 4 start pose case
+start_case=2;   % there are 4 start pose case
 
 simulation_length=100;  %length in s.
 YourVariables.T = simulation_length;
@@ -53,7 +53,7 @@ YourVariables.error_old=zeros(1,1);
 YourVariables.first=1;
 YourVariables.gainI=-0.0009;
 YourVariables.gainD=-0.3;
-YourVariables.gainP=0.3;
+YourVariables.gainP=0.2;
 YourVariables.varv=YourVariables.var1;
 
 % Kalman Filter
