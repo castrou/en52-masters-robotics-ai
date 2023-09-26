@@ -156,8 +156,8 @@ disp(horzcat('Final robot position error: ',num2str(rms([references.pose(1,3)-ro
 %**************************************************************************
 % Image Features
 %**************************************************************************
-figure(2)           
-hold on
+% figure(2)           
+% hold on
 c=hsv(size(references.features.position,1));
 value = reshape([robot.actual.features(:).position],4,2,timing.N);
 if strcmp(imaging.type, 'SPH')
@@ -165,53 +165,53 @@ if strcmp(imaging.type, 'SPH')
     referencesposition = references.features.position*180/pi;
 end
 for i=1:1:size(references.features.position,1)    
-    plot(referencesposition(i,2),referencesposition(i,1),'o','Color',c(i,:),'MarkerSize',10);
-    plot(reshape(value(i,2,:),[],1) ,reshape(value(i,1,:),[],1),linetype,'Color',[c(i,:) linetrans],'LineWidth',linewidth);
-    plot(value(i,2,1) ,value(i,1,1),'.','Color',c(i,:),'MarkerSize',14);
-    plot(value(i,2,end) ,value(i,1,end),'*','Color',c(i,:),'MarkerSize',6);
-    disp(horzcat('Feature ',num2str(i),' Final image position error: ',num2str(rms([referencesposition(i,2)- value(i,2,end),referencesposition(i,1)- value(i,1,end)])),' (deg)'));  
+    % plot(referencesposition(i,2),referencesposition(i,1),'o','Color',c(i,:),'MarkerSize',10);
+    % plot(reshape(value(i,2,:),[],1) ,reshape(value(i,1,:),[],1),linetype,'Color',[c(i,:) linetrans],'LineWidth',linewidth);
+    % plot(value(i,2,1) ,value(i,1,1),'.','Color',c(i,:),'MarkerSize',14);
+    % plot(value(i,2,end) ,value(i,1,end),'*','Color',c(i,:),'MarkerSize',6);
+    % disp(horzcat('Feature ',num2str(i),' Final image position error: ',num2str(rms([referencesposition(i,2)- value(i,2,end),referencesposition(i,1)- value(i,1,end)])),' (deg)'));  
 end
 %hl1 = legend('$\hat{\sigma}$', '$\hat{\gamma}$','$\sigma$','$\gamma$');
 %set(hl1,'Interpreter','latex');
-xlabel(xlab,'interpreter','latex','FontSize',14);
-ylabel(ylab,'interpreter','latex','FontSize',14);
-title('Image Features','interpreter','latex','FontSize',14)
-ax = gca;
-ft2lim = ax.YLim;
-ft1lim = ax.XLim;
-hold off
+% xlabel(xlab,'interpreter','latex','FontSize',14);
+% ylabel(ylab,'interpreter','latex','FontSize',14);
+% title('Image Features','interpreter','latex','FontSize',14)
+% ax = gca;
+% ft2lim = ax.YLim;
+% ft1lim = ax.XLim;
+% hold off
 
 %**************************************************************************
 % Control / Input
 %**************************************************************************
-figure(3)           
-hold on
+% figure(3)           
+% hold on
 value = [];
 value = reshape([robot.control(:).actual],6,[]);
 %c     = hsv(size(value,1));
 c = [1 0 0;0 1 0;0 0 1;1 0 1;0 0 0;0 1 1];
 for i=1:1:size(value,1)    
-    plot(timing.t,value(i,:),linetype,'Color',[c(i,:) linetrans],'LineWidth',linewidth);
+    % plot(timing.t,value(i,:),linetype,'Color',[c(i,:) linetrans],'LineWidth',linewidth);
 end
-hl1 = legend('$\dot{x}$', '$\dot{y}$','$\dot{z}$','$\dot{\phi}$','$\dot{\theta}$','$\dot{\psi}$');
-set(hl1,'Interpreter','latex');set(hl1,'Location','Northwest');
+% hl1 = legend('$\dot{x}$', '$\dot{y}$','$\dot{z}$','$\dot{\phi}$','$\dot{\theta}$','$\dot{\psi}$');
+% set(hl1,'Interpreter','latex');set(hl1,'Location','Northwest');
 for i=1:1:size(value,1)    
-    hh=plot(timing.t(1),value(i,1),'.','Color',c(i,:),'MarkerSize',14); hh.Annotation.LegendInformation.IconDisplayStyle = 'off';
-    hh=plot(timing.t(end),value(i,end),'*','Color',c(i,:),'MarkerSize',6); hh.Annotation.LegendInformation.IconDisplayStyle = 'off';
+    % hh=plot(timing.t(1),value(i,1),'.','Color',c(i,:),'MarkerSize',14); hh.Annotation.LegendInformation.IconDisplayStyle = 'off';
+    % hh=plot(timing.t(end),value(i,end),'*','Color',c(i,:),'MarkerSize',6); hh.Annotation.LegendInformation.IconDisplayStyle = 'off';
 end
-title('Control','interpreter','latex','FontSize',14)
-xlabel('Time (s)','interpreter','latex','FontSize',14);
-ylabel('Control ($\mbox{ms}^{-1}/\mbox{rads}^{-1}$)','interpreter','latex','FontSize',14);
-ax = gca;
-contlim = ax.YLim;
-tlim    = ax.XLim;
-hold off
+% title('Control','interpreter','latex','FontSize',14)
+% xlabel('Time (s)','interpreter','latex','FontSize',14);
+% ylabel('Control ($\mbox{ms}^{-1}/\mbox{rads}^{-1}$)','interpreter','latex','FontSize',14);
+% ax = gca;
+% contlim = ax.YLim;
+% tlim    = ax.XLim;
+% hold off
 
 %**************************************************************************
 % Feature Error
 %**************************************************************************
-figure(4)
-hold on
+% figure(4)
+% hold on
 c=hsv(size(references.features.position,1));
 %temperror   = reshape([robot.error.actual],size([robot.error.actual],1),[]);
 temperror = {robot.error.actual};
@@ -237,24 +237,24 @@ sumtemperror = sum(sum(abs(rawfeatures),3),2);
 
 for i=1:1:max(cell2mat(templength))/2
     % Plot Separated Lines (uses NaN's so line is discontinuous)
-    plot(timing.t(1),nanfeatures(1,1,i),'.','Color',c(i,:),'MarkerSize',14);
-    plot(timing.t(end),nanfeatures(end,1,i),'*','Color',c(i,:),'MarkerSize',6);
-    plot(timing.t,nanfeatures(:,1,i),linetype,'Color',c(i,:),'LineWidth',linewidth);
-    plot(timing.t(1),nanfeatures(1,2,i),'.','Color',horzcat(c(i,:), 0.5),'MarkerSize',14);
-    plot(timing.t(end),nanfeatures(end,2,i),'*','Color',horzcat(c(i,:), 0.5),'MarkerSize',6);
-    plot(timing.t,nanfeatures(:,2,i),linetype,'Color',horzcat(c(i,:), 0.3),'LineWidth',linewidth);
+    % plot(timing.t(1),nanfeatures(1,1,i),'.','Color',c(i,:),'MarkerSize',14);
+    % plot(timing.t(end),nanfeatures(end,1,i),'*','Color',c(i,:),'MarkerSize',6);
+    % plot(timing.t,nanfeatures(:,1,i),linetype,'Color',c(i,:),'LineWidth',linewidth);
+    % plot(timing.t(1),nanfeatures(1,2,i),'.','Color',horzcat(c(i,:), 0.5),'MarkerSize',14);
+    % plot(timing.t(end),nanfeatures(end,2,i),'*','Color',horzcat(c(i,:), 0.5),'MarkerSize',6);
+    % plot(timing.t,nanfeatures(:,2,i),linetype,'Color',horzcat(c(i,:), 0.3),'LineWidth',linewidth);
 end
-title('Image Feature Error','interpreter','latex','FontSize',14)
-xlabel('Time (s)','interpreter','latex','FontSize',14);
-if strcmp(imaging.type,'SPH')
-    ylabel('Error (deg)','interpreter','latex','FontSize',14);
-elseif strcmp(imaging.type,'CRT')
-    ylabel('Error (pix)','interpreter','latex','FontSize',14);
-elseif strcmp(imaging.type,'POL')
-    ylabel('Error (deg/pix)','interpreter','latex','FontSize',14);
-else
-    ylabel('Error (deg/pix/m)','interpreter','latex','FontSize',14);
-end
+% title('Image Feature Error','interpreter','latex','FontSize',14)
+% xlabel('Time (s)','interpreter','latex','FontSize',14);
+% if strcmp(imaging.type,'SPH')
+%     ylabel('Error (deg)','interpreter','latex','FontSize',14);
+% elseif strcmp(imaging.type,'CRT')
+%     ylabel('Error (pix)','interpreter','latex','FontSize',14);
+% elseif strcmp(imaging.type,'POL')
+%     ylabel('Error (deg/pix)','interpreter','latex','FontSize',14);
+% else
+    % ylabel('Error (deg/pix/m)','interpreter','latex','FontSize',14);
+% end
 hold off
 
 hold off
@@ -279,17 +279,17 @@ disp(horzcat('Total Image Feature Error (final time instant): ',num2str(sumtempe
 %**************************************************************************
 % Target Range
 %**************************************************************************
-figure(6)
-hold on
+% figure(6)
+% hold on
 %roboterror = temperror(k,:);
-plot(timing.t(1),robot.actual.range(1),'.','Color','k','MarkerSize',14);
-plot(timing.t(end),robot.actual.range(end-1),'*','Color','k','MarkerSize',6);
-plot(timing.t,robot.actual.range(1:end-1)',linetype,'Color','k','LineWidth',linewidth);
-plot(timing.t,ones(size(timing.t)).*references.range,':','Color','k')
-title('Target Range','interpreter','latex','FontSize',14)
-xlabel('Time (s)','interpreter','latex','FontSize',14);
-ylabel('Range (m)','interpreter','latex','FontSize',14);
-hold off
+% plot(timing.t(1),robot.actual.range(1),'.','Color','k','MarkerSize',14);
+% plot(timing.t(end),robot.actual.range(end-1),'*','Color','k','MarkerSize',6);
+% plot(timing.t,robot.actual.range(1:end-1)',linetype,'Color','k','LineWidth',linewidth);
+% plot(timing.t,ones(size(timing.t)).*references.range,':','Color','k')
+% title('Target Range','interpreter','latex','FontSize',14)
+% xlabel('Time (s)','interpreter','latex','FontSize',14);
+% ylabel('Range (m)','interpreter','latex','FontSize',14);
+% hold off
 
 
 

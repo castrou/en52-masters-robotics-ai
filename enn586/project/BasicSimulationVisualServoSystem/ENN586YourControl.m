@@ -21,7 +21,7 @@ kf = YourVariables.kf;
 B = Ja(:,control.dof)*YourVariables.dt;
 
 err = kf.e_est;
-err = e.actual;
+% err = e.actual;
 YourVariables.var1=YourVariables.var1+pinv(Ja(:,control.dof))*err;
 
 if YourVariables.first==1
@@ -35,7 +35,7 @@ YourVariables.error_old=pinv(Ja(:,control.dof))*err;
 uactual =-YourVariables.gainP*pinv(Ja(:,control.dof))*err-YourVariables.gainD*Derror2+YourVariables.gainI*YourVariables.var1; 
 YourVariables.disturbance_est=YourVariables.gainI*YourVariables.var1;
 
-% uactual = -control.gain*pinv(Ja(:,control.dof))*err;
+uactual = -control.gain*pinv(Ja(:,control.dof))*err;
 
 
 kf.B_prev = B;
