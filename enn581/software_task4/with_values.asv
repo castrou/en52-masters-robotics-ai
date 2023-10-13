@@ -1,0 +1,138 @@
+clear
+close all
+
+L1 = 0.4;
+m1 = 1;
+m2 = 1;
+m3 = 1;
+g = 9.81;
+
+time = 0:0.01:1;
+[q1traj,qd1traj,qdd1traj,pp1] = cubicpolytraj([0 30],[0 1],time);
+[q2traj,qd2traj,qdd2traj,pp2] = cubicpolytraj([0.2 0.4],[0 1],time);
+[q3traj,qd3traj,qdd3traj,pp3] = cubicpolytraj([0 45],[0 1],time);
+
+torques = zeros([3 length(time)]);
+for i = 1:length(time)
+    q1 = q1traj(i);
+    qd1 = qd1traj(i);
+    qdd1 = qdd1traj(i);
+    q2 = q2traj(i);
+    qd2 = qd2traj(i);
+    qdd2 = qdd2traj(i);
+    q3= q3traj(i);
+    qd3 = qd3traj(i);
+    qdd3 = qdd3traj(i);
+
+    %% Outwards
+    %%% Link 0 (ground)
+    w0_0 = [0;0;0];
+    wd0_0 = [0;0;0];
+    vd0_0 = [0;0;g];
+    
+    %%% Link 1
+    qd1z = [0;0;qd1];
+    qdd1z = [0;0;qdd1];
+    R0_1 = [1 0 0
+            0 0 -1
+            0 1 0]; % rotate 90 around x
+    R1_0 = transpose(R0_1);
+    P0_1 = [L1;0;0];
+    Pc1_1 = [0;0;0];
+    r = L1;
+    Ic1 = [0 0 0;
+           0 m1*L1^2 0;
+           0 0 m1*L1^2;];
+    % Angular velocity
+    w1_1 = R1_0 * wd0_0 + qd1z;
+    % Angular accel
+    wd1_1 = R1_0 * wd0_0 + cross(R1_0 * w0_0, qd1z) + qdd1z;
+    % Linear accel at link frame
+    vd1_1 = R1_0 * (cross(wd0_0, P0_1) + cross(w0_0, cross(w0_0, P0_1)) + vd0_0);
+    % Linear accel at centroid (point mass at distal)
+    vd1_c1 = cross(wd1_1, Pc1_1) + cross(w1_1, cross(w1_1,Pc1_1)) + vd1_1;
+    % Force acting on link at centroid (point mass at distal)
+    F1_1 = m1 * vd1_c1;
+    % Moment acting on link around centroid (point mass at distal)
+    N1_1 = Ic1 * wd1_1 + cross(w1_1, Ic1 * w1_1);
+    
+    %%% Link 2
+    qd2z = [0;0;qd2];
+    qdd2z = [0;0;qdd2];
+    R1_2 = [0 0 1
+            0 1 0
+            -1 0 0]; % rotate 90 around y
+    R2_1 = transpose(R1_2);
+    P1_2 = [0;0;q2];
+    Pc2_2 = [0;0;0];
+    r = L1 + q2;
+    Ic2 = [m2*q2^2 0 0;
+           0 m2*q2^2 0;
+           0 0 0;];
+    % Angular velocity
+    w2_2 = R2_1 * wd1_1;
+    % Angular accel
+    wd2_2 = R2_1 * wd1_1;
+    % Linear accel at link frame
+    vd2_2 = R2_1 * (cross(wd1_1, P1_2) + cross(w1_1, cross(w1_1, P1_2)) + vd1_1) ...
+            + cross(2 * w2_2, qd2z) + qdd2z;
+    % Linear accel at centroid
+    vd2_c2 = cross(wd2_2, Pc2_2) + cross(w2_2, cross(w2_2,Pc2_2)) + vd2_2;
+    % Force acting on link at centroid (point mass at distal)
+    F2_2 = m2 * vd2_c2;
+    % Moment acting on link around centroid (point mass at distal)
+    N2_2 = Ic2 * wd2_2 + cross(w2_2, Ic2 * w2_2);
+    
+    %%% Link 3
+    qd3z = [0;0;qd3];
+    qdd3z = [0;0;qdd3];
+    R2_3 = [1 0 0
+            0 1 0
+            0 0 1]; % no rotation
+    R3_2 = transpose(R2_3);
+    P2_3 = [0;0;0];
+    Pc3_3 = [0;0;0];
+    Ic3 = 0;
+    % Angular velocity
+    w3_3 = R3_2 * wd2_2 + qd3z;
+    % Angular accel
+    wd3_3 = R3_2 * wd2_2 + cross(R3_2 * w2_2, qd3z) + qdd3z;
+    % Linear accel at link frame
+    vd3_3 = R3_2 * (cross(wd2_2, P2_3) + cross(w2_2, cross(w2_2, P2_3)) + vd2_2);
+    % Linear accel at centroid
+    vd3_c3 = cross(wd3_3, Pc3_3) + cross(w3_3, cross(w3_3,Pc3_3)) + vd3_3;
+    % Force acting on link at centroid (point mass at distal)
+    F3_3 = m3 * vd3_c3;
+    % Moment acting on link around centroid (point mass at distal)
+    N3_3 = Ic3 * wd3_3 + cross(w3_3, Ic3 * w3_3);
+    
+    %% inwards
+    %%% Link E (end eff)
+    fe_e = 0;
+    ne_e = 0;
+    
+    %%% Link 3
+    f3_3 = F3_3;
+    n3_3 = N3_3 + cross(Pc3_3, F3_3);
+    tau3 = transpose(n3_3) * [0;0;1];
+    
+    %%% Link 2
+    f2_2 = F2_2 + R2_3 * f3_3;
+    n2_2 = N2_2 + R2_3 * n3_3 + cross(Pc2_2, F2_2) + cross(P2_3, R2_3 * f3_3);
+    tau2 = transpose(f2_2) * [0;0;1];
+    
+    %%% Link 1
+    f1_1 = F1_1 + R1_2 * f2_2;
+    n1_1 = N1_1 + R1_2 * n2_2 + cross(Pc1_1, F1_1) + cross(P1_2, R1_2 * f2_2);
+    tau1 = transpose(n1_1) * [0;0;1];
+
+    %% output
+    torques(:,i) = [tau1 tau2 tau3];
+end
+
+[tau1_max, i1] = max(abs(torques(1,:)));
+[tau2_max, i2] = max(abs(torques(2,:)));
+[tau3_max, i3] = max(abs(torques(3,:)));
+
+tau1_max, time(i1)
+tau2_max, 

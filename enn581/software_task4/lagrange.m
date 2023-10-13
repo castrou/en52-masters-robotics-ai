@@ -1,0 +1,90 @@
+syms L1 g R m1 m2 m3 
+syms q1(t) q2(t) q3(t)
+
+qd1(t) = diff(q1(t));
+qdd1(t) = diff(qd1(t));
+
+qd2(t) = diff(q2(t));
+qdd2(t) = diff(qd2(t));
+
+qd3(t) = diff(q3(t));
+qdd3(t) = diff(qd3(t));
+
+% Link 1
+x1 = L1 * cos(q1(t));
+y1 = L1 * sin(q1(t));
+xd1 = -L1 * sin(q1(t)) * qd1;
+yd1 = L1 * cos(q1(t)) * qd1;
+% Link 2
+x2 = x1 + q2(t) * cos(q1(t));
+y2 = y1 + q2(t) * sin(q1(t));
+xd2 = xd1 + qd2 * cos(q1(t)) - q2(t) * sin(q1(t)) * qd1(t);
+yd2 = yd1 + qd2 * sin(q1(t)) + q2(t) * cos(q1(t)) * qd1(t);
+% Link 3
+x3 = x2;
+y3 = y2;
+th3 = q3(t);
+xd3 = xd2;
+yd3 = yd2;
+thd3 = qd3(t);
+
+% Energy eqn
+K1 = 0.5 * m1 * (xd1^2 + yd1^2);
+P1 = m1 * g * y1;
+
+K2 = 0.5 * m2 * (xd2^2 + yd2^2);
+P2 = m2 * g * y2;
+
+K3 = 0.5 * m3 * (xd3^2 + yd3^2) + 0.5 * m3 * R^2 * thd3;
+P3 = m3 * g * y3;
+
+% Lagrangian
+L = (K1 - P1) + (K2 - P2) + (K3 - P3);
+L = simplify(L);
+
+Lq1(t) = diff(L, q1(t));
+Lqd1 = diff(L, qd1(t));
+Lq2(t) = diff(L, q2(t));
+Lqd2 = diff(L, qd2(t));
+Lq3(t) = diff(L,q3(t));
+Lqd3 = diff(L, qd3(t));
+
+dLqd1 = diff(Lqd1);
+dLqd2 = diff(Lqd2);
+dLqd3 = diff(Lqd3);
+
+% Torque eqn
+tau3 = dLqd3 - Lq3
+tau2 = dLqd2 - Lq2
+tau1 = dLqd1 - Lq1
+
+% With val
+time = 0:0.01:1;
+[q1traj, qd1traj, qdd1traj, pp] = cubicpolytraj([deg2rad(0) deg2rad(30)], [0 1], time);
+[q2traj qd2traj qdd2traj pp] = cubicpolytraj([0.2 0.4], [0 1], time);
+[q3traj qd3traj qdd3traj pp] = cubicpolytraj([0 deg2rad(45)], [0 1], time);
+
+tau2traj = zeros([1 length(time)]);
+tau1traj = zeros([1 length(time)]);
+
+% Loop over each time step and calculate the torque values
+for i = 1:length(time)
+    % Substitute the current values of q1, qd1, qdd1, q2, qd2, and qdd2
+    tau2traj(i) = subs(tau2, [L1, m1, m2, m3, g, q1(t), qd1(t), qdd1(t), q2(t), qd2(t), qdd2(t)], ...
+                [0.4, 1, 1, 1, 9.81, q1traj(i), qd1traj(i), qdd1traj(i), q2traj(i), qd2traj(i), qdd2traj(i)]);
+    
+    % Similarly, calculate tau1traj
+    tau1traj(i) = subs(tau1, [L1, m1, m2, m3, g, q1(t), qd1(t), qdd1(t), q2(t), qd2(t), qdd2(t)], ...
+                [0.4, 1, 1, 1, 9.81, q1traj(i), qd1traj(i), qdd1traj(i), q2traj(i), qd2traj(i), qdd2traj(i)]);
+end
+
+[tau1_max, i1] = max(abs(tau1traj));
+[tau2_max, i2] = max(abs(tau2traj));
+
+tau1_max
+time1 = time(i1)
+q1_pos = [q1traj(i1); q2traj(i1); q3traj(i1)]
+
+tau2_max
+time2 = time(i2)
+q2_pos = [q1traj(i2); q2traj(i2); q3traj(i2)]
