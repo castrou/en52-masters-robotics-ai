@@ -1,0 +1,267 @@
+{
+    "fl_x": 1592.01318359375,
+    "fl_y": 1592.01318359375,
+    "cx": 954.727294921875,
+    "cy": 713.03466796875,
+    "w": 1920.0,
+    "h": 1440.0,
+    "integer_depth_scale": 0.00012207217517357137,
+    "frames": [
+        {
+            "file_path": "images/0000.png",
+            "depth_path": "depth/0000.depth.png"
+        },
+        {
+            "file_path": "images/0001.png",
+            "depth_path": "depth/0001.depth.png"
+        },
+        {
+            "file_path": "images/0002.png",
+            "depth_path": "depth/0002.depth.png"
+        },
+        {
+            "file_path": "images/0003.png",
+            "depth_path": "depth/0003.depth.png"
+        },
+        {
+            "file_path": "images/0004.png",
+            "depth_path": "depth/0004.depth.png"
+        },
+        {
+            "file_path": "images/0005.png",
+            "depth_path": "depth/0005.depth.png"
+        },
+        {
+            "file_path": "images/0006.png",
+            "depth_path": "depth/0006.depth.png"
+        },
+        {
+            "file_path": "images/0007.png",
+            "depth_path": "depth/0007.depth.png"
+        },
+        {
+            "file_path": "images/0008.png",
+            "depth_path": "depth/0008.depth.png"
+        },
+        {
+            "file_path": "images/0009.png",
+            "depth_path": "depth/0009.depth.png"
+        },
+        {
+            "file_path": "images/0010.png",
+            "depth_path": "depth/0010.depth.png"
+        },
+        {
+            "file_path": "images/0011.png",
+            "depth_path": "depth/0011.depth.png"
+        },
+        {
+            "file_path": "images/0012.png",
+            "depth_path": "depth/0012.depth.png"
+        },
+        {
+            "file_path": "images/0013.png",
+            "depth_path": "depth/0013.depth.png"
+        },
+        {
+            "file_path": "images/0014.png",
+            "depth_path": "depth/0014.depth.png"
+        },
+        {
+            "file_path": "images/0015.png",
+            "depth_path": "depth/0015.depth.png"
+        },
+        {
+            "file_path": "images/0016.png",
+            "depth_path": "depth/0016.depth.png"
+        },
+        {
+            "file_path": "images/0017.png",
+            "depth_path": "depth/0017.depth.png"
+        },
+        {
+            "file_path": "images/0018.png",
+            "depth_path": "depth/0018.depth.png"
+        },
+        {
+            "file_path": "images/0019.png",
+            "depth_path": "depth/0019.depth.png"
+        },
+        {
+            "file_path": "images/0020.png",
+            "depth_path": "depth/0020.depth.png"
+        },
+        {
+            "file_path": "images/0021.png",
+            "depth_path": "depth/0021.depth.png"
+        },
+        {
+            "file_path": "images/0022.png",
+            "depth_path": "depth/0022.depth.png"
+        },
+        {
+            "file_path": "images/0023.png",
+            "depth_path": "depth/0023.depth.png"
+        },
+        {
+            "file_path": "images/0024.png",
+            "depth_path": "depth/0024.depth.png"
+        },
+        {
+            "file_path": "images/0025.png",
+            "depth_path": "depth/0025.depth.png"
+        },
+        {
+            "file_path": "images/0026.png",
+            "depth_path": "depth/0026.depth.png"
+        },
+        {
+            "file_path": "images/0027.png",
+            "depth_path": "depth/0027.depth.png"
+        },
+        {
+            "file_path": "images/0028.png",
+            "depth_path": "depth/0028.depth.png"
+        },
+        {
+            "file_path": "images/0029.png",
+            "depth_path": "depth/0029.depth.png"
+        },
+        {
+            "file_path": "images/0030.png",
+            "depth_path": "depth/0030.depth.png"
+        },
+        {
+            "file_path": "images/0031.png",
+            "depth_path": "depth/0031.depth.png"
+        },
+        {
+            "file_path": "images/0032.png",
+            "depth_path": "depth/0032.depth.png"
+        },
+        {
+            "file_path": "images/0033.png",
+            "depth_path": "depth/0033.depth.png"
+        },
+        {
+            "file_path": "images/0034.png",
+            "depth_path": "depth/0034.depth.png"
+        },
+        {
+            "file_path": "images/0035.png",
+            "depth_path": "depth/0035.depth.png"
+        },
+        {
+            "file_path": "images/0036.png",
+            "depth_path": "depth/0036.depth.png"
+        },
+        {
+            "file_path": "images/0037.png",
+            "depth_path": "depth/0037.depth.png"
+        },
+        {
+            "file_path": "images/0038.png",
+            "depth_path": "depth/0038.depth.png"
+        },
+        {
+            "file_path": "images/0039.png",
+            "depth_path": "depth/0039.depth.png"
+        },
+        {
+            "file_path": "images/0040.png",
+            "depth_path": "depth/0040.depth.png"
+        },
+        {
+            "file_path": "images/0041.png",
+            "depth_path": "depth/0041.depth.png"
+        },
+        {
+            "file_path": "images/0042.png",
+            "depth_path": "depth/0042.depth.png"
+        },
+        {
+            "file_path": "images/0043.png",
+            "depth_path": "depth/0043.depth.png"
+        },
+        {
+            "file_path": "images/0044.png",
+            "depth_path": "depth/0044.depth.png"
+        },
+        {
+            "file_path": "images/0045.png",
+            "depth_path": "depth/0045.depth.png"
+        },
+        {
+            "file_path": "images/0046.png",
+            "depth_path": "depth/0046.depth.png"
+        },
+        {
+            "file_path": "images/0047.png",
+            "depth_path": "depth/0047.depth.png"
+        },
+        {
+            "file_path": "images/0048.png",
+            "depth_path": "depth/0048.depth.png"
+        },
+        {
+            "file_path": "images/0049.png",
+            "depth_path": "depth/0049.depth.png"
+        },
+        {
+            "file_path": "images/0050.png",
+            "depth_path": "depth/0050.depth.png"
+        },
+        {
+            "file_path": "images/0051.png",
+            "depth_path": "depth/0051.depth.png"
+        },
+        {
+            "file_path": "images/0052.png",
+            "depth_path": "depth/0052.depth.png"
+        },
+        {
+            "file_path": "images/0053.png",
+            "depth_path": "depth/0053.depth.png"
+        },
+        {
+            "file_path": "images/0054.png",
+            "depth_path": "depth/0054.depth.png"
+        },
+        {
+            "file_path": "images/0055.png",
+            "depth_path": "depth/0055.depth.png"
+        },
+        {
+            "file_path": "images/0056.png",
+            "depth_path": "depth/0056.depth.png"
+        },
+        {
+            "file_path": "images/0057.png",
+            "depth_path": "depth/0057.depth.png"
+        },
+        {
+            "file_path": "images/0058.png",
+            "depth_path": "depth/0058.depth.png"
+        },
+        {
+            "file_path": "images/0059.png",
+            "depth_path": "depth/0059.depth.png"
+        },
+        {
+            "file_path": "images/0060.png",
+            "depth_path": "depth/0060.depth.png"
+        },
+        {
+            "file_path": "images/0061.png",
+            "depth_path": "depth/0061.depth.png"
+        },
+        {
+            "file_path": "images/0062.png",
+            "depth_path": "depth/0062.depth.png"
+        },
+        {
+            "file_path": "images/0063.png",
+            "depth_path": "depth/0063.depth.png"
+        }
+    ]
+}

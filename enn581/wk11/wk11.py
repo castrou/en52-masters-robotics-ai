@@ -54,12 +54,12 @@ def get_forcetorque(F1, F2, F3):
 def get_dzeta(u, v, dth, cf_x, cf_y, cn_z):
     global m, cI
     # m*ddu + -m*dth*v = cf_x
-    ddu = (cf_x / m) + dth*v
+    du = (cf_x / m) + dth*v
     # m*ddv + m*dth*u = cf_y
-    ddv = (cf_y / m) + dth*u
+    dv = (cf_y / m) + dth*u
     # cI*ddth = cn_z
     ddth = cn_z / cI
-    return ddu, ddv, ddth
+    return du, dv, ddth
     
     
 
