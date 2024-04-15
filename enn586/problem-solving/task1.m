@@ -54,6 +54,7 @@ xlabel('Step');
 % error
 err_sq = (C_hat - C_plot) .^ 2;
 rms = sqrt(1/k_count * sum(err_sq))
+
 % error plot
 figure Name Error
 title('Error')

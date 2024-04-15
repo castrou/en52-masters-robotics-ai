@@ -1,6 +1,9 @@
 [submodule "enn583"]
 	path = enn583
 	url = git@github.com:nikosuenderhauf/enn583.git
-[submodule "enn581/wk12/pgraph-python"]
-	path = enn581/wk12/pgraph-python
-	url = /home/castrou/university/enn581/wk12/pgraph-python
+[submodule "thesis/Depth-Anything"]
+	path = thesis/Depth-Anything
+	url = git@github.com:LiheYoung/Depth-Anything.git
+[submodule "thesis/colmap"]
+	path = thesis/colmap
+	url = git@github.com:colmap/colmap.git
