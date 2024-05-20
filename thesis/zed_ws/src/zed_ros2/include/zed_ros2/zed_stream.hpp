@@ -1,3 +1,6 @@
+#ifndef ZED_STREAM__HPP_
+#define ZED_STREAM__HPP_
+
 #include <memory>
 #include <vector>
 
@@ -9,6 +12,8 @@
 
 #include <zed_lib/sensorcapture.hpp>
 #include <zed_lib/videocapture.hpp>
+
+#include "stereo.hpp"
 
 namespace zed_stream
 {
@@ -40,9 +45,15 @@ private:
   std::string calibration_file;
   int frame_width;
   int frame_height;
+  double baseline;
+  double fx, fy, cx, cy;
   cv::Mat map_left_x, map_left_y;
   cv::Mat map_right_x, map_right_y;
   cv::Mat cameraMatrix_left, cameraMatrix_right;
+  cv::Ptr<cv::StereoSGBM> left_matcher;
+  sl_oc::tools::StereoSgbmPar stereoPar;
 };
 
 }  // namespace zed_stream
+
+#endif // ZED_STREAM__HPP_
