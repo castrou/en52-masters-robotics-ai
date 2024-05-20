@@ -1,3 +1,7 @@
 {
-    "cmake.sourceDirectory": "/home/castrou/university/enn581/ENN581_venv/lib/python3.10/site-packages/rtbdata/xacro/ridgeback_description"
+    "cmake.sourceDirectory": "/home/castrou/university/enn581/ENN581_venv/lib/python3.10/site-packages/rtbdata/xacro/ridgeback_description",
+    "C_Cpp.default.compilerPath": "/usr/bin/g++",
+    "files.associations": {
+        "string": "cpp"
+    }
 }

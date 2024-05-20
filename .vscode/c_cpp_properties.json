@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/thesis/zed_ws/src/zed_ros2/include/zed_ros2",
+                "${workspaceFolder}/thesis/zed_ws/src/zed_ros2/include/zed_ros2/zed_lib",
+                "/opt/ros/humble/include"
+            ],
+            "defines": [],
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}
