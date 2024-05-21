@@ -38,10 +38,14 @@ Created by: Anthony Vanderkop, Thierry Peynot
 Last edited: May 15, 2024
 -------------------------------------------------------------------------------
 """
+from PIL import Image 
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from util_funcs import wrapToPi, Robot, Map, load_path, getLine
+import copy
+
+from util_funcs import wrapToPi, Robot, Map, load_path, getLineFromGridCoord
 
 #a couple of other useful quantities to have
 pi = np.pi
@@ -51,18 +55,22 @@ r2d = lambda x: x*180/pi
 
 class OccupancyGrid(object):
     def __init__(self, map_bounds, resolution, occupied_threshold):
-        self.resolution = resolution
+        self.resolution = resolution # m / px
         self.occupied_threshold = occupied_threshold
-        self.world_bounds = map_bounds #in form [ xmin, ymin, xmax, ymax]
+        self.bounds = map_bounds #in form [ xmin, ymax, xmax, ymin]
+
+        self.x_range = np.abs(self.bounds[2] - self.bounds[0])
+        self.y_range = np.abs(self.bounds[1] - self.bounds[3])
+        self.i_max = int(self.y_range / self.resolution)
+        self.j_max = int(self.x_range / self.resolution)
+        self.x_origin = self.j_max / 2
+        self.y_origin = self.i_max / 2
         
-        self.x_origin = map_bounds[2] / 2
-        self.y_origin =  map_bounds[3] / 2
-        ij_min = self.world_to_ij(map_bounds[0], map_bounds[1])
-        ij_max = self.world_to_ij(map_bounds[2], map_bounds[3])
-        self.ij_bounds = [ij_min[0], ij_min[1], ij_max[0], ij_max[1]]
-        self.grid = np.empty(self.ij_bounds[2:])
+        self.grid = np.zeros([self.i_max, self.j_max])
+        
+        self.isPlotting = False
     
-    def update(self, i: int, j: int, collision):
+    def update(self, i: int, j: int, collision, scaling=1):
         '''
         Your code here. Update the values in the occupancy grid based on whether the laser
         collided with an obstacle at that position or not.
@@ -78,7 +86,7 @@ class OccupancyGrid(object):
         else:
             update_val = -0.3
         
-        self.grid[i][j] += update_val
+        self.grid[i][j] = self.grid[i][j] + update_val * scaling
 
     def prob_2_log_odds(self, p):
         '''
@@ -104,12 +112,18 @@ class OccupancyGrid(object):
         return 1 / (1 + np.exp(-l))
         
     def plot_occupancy_grid(self):
-        plt.imshow(self.grid, cmap='gray', origin='lower')
-        plt.colorbar()
-        plt.title('Occupancy Grid')
-        plt.xlabel('Column Index')
-        plt.ylabel('Row Index')
-        plt.show()
+        prob = np.zeros((self.i_max, self.j_max))
+        for i in range(self.i_max):
+            for j in range(self.j_max):
+                prob[i][j] = self.log_odds_2_prob(self.grid[i][j])
+        plt.imshow(prob, cmap='gray_r', origin='lower')
+        if (not self.isPlotting):
+            plt.colorbar()
+            plt.title('Occupancy Grid')
+            plt.xlabel('Column Index')
+            plt.ylabel('Row Index')
+        self.isPlotting = True
+        plt.waitforbuttonpress(1)
         
     def ij_to_world(self, i, j):
         x = (j - self.x_origin) * self.resolution
@@ -117,8 +131,8 @@ class OccupancyGrid(object):
         return x, y
         
     def world_to_ij(self, x, y):
-        i = self.y_origin + np.floor(-y / self.resolution)
-        j = self.x_origin + np.floor((x) / self.resolution)
+        i = self.y_origin + y / self.resolution
+        j = self.x_origin + (x) / self.resolution
         return int(i), int(j)
     
 
@@ -127,72 +141,168 @@ def laser_scanner_occupancy(robot: Robot, occupancy_grid: OccupancyGrid):
     i = 0
     while True:
         laser_scan, _ = robot.step()
+        robot_x, robot_y = robot.pose[:2]
         for i, (range, collision) in enumerate(zip(laser_scan[0], laser_scan[1])):
-            robot_x, robot_y = robot.pose[:2]
-            bearing = wrapToPi(robot.pose[2] + d2r(-60 + 3 * i))
-            dx = range * np.cos(bearing)
-            dy = range * np.sin(bearing)
-            measure_loc = [robot_x + dx, robot_y + dy]
+            bearing = wrapToPi(robot.pose[2] + robot.laser_angles[i])
+            laser_x = robot_x + range * np.cos(bearing)
+            laser_y = robot_y + range * np.sin(bearing)
+            
             robot_i, robot_j = occupancy_grid.world_to_ij(robot_x, robot_y)
-            meas_i, meas_j = occupancy_grid.world_to_ij(measure_loc[0], measure_loc[1])
-            beam = getLine(robot_i, robot_j, meas_i, meas_j)
-            plt.scatter(x=beam[:,0], y=beam[:,1])
-            plt.pause(0.01)
-            for i, (pi, pj) in enumerate(beam):
-                if i == len(beam):
+            laser_i, laser_j = occupancy_grid.world_to_ij(laser_x, laser_y)
+            laser_i = min(occupancy_grid.i_max - 1, laser_i)
+            laser_j = min(occupancy_grid.j_max - 1, laser_j)
+            beam = getLineFromGridCoord(robot_i, robot_j, laser_i, laser_j)
+            for pi, pj in beam:
+                if (pi, pj) == (laser_i, laser_j):
                     occupancy_grid.update(pi, pj, collision)
                 else:
                     occupancy_grid.update(pi, pj, False)
-        i += 1
-        if i == 10:
-            break
-    occupancy_grid.plot_occupancy_grid()
-    print(occupancy_grid.grid)
-    
-def radar_occupancy(robot, occupancy_grid):
+        occupancy_grid.plot_occupancy_grid()
+
+
+def radar_occupancy(robot: Robot, occupancy_grid: OccupancyGrid):
     
     while True:
         _, radar_scan = robot.step()
-        break
+        robot_x, robot_y = robot.pose[:2]
+        for i, (range, collision) in enumerate(zip(radar_scan[0], radar_scan[1])):
+            bearing = wrapToPi(robot.pose[2] + robot.radar_angles[i])
+            radar_x = robot_x + range * np.cos(bearing)
+            radar_y = robot_y + range * np.sin(bearing)
+            
+            robot_i, robot_j = occupancy_grid.world_to_ij(robot_x, robot_y)
+            radar_i, radar_j = occupancy_grid.world_to_ij(radar_x, radar_y)
+            radar_i = min(occupancy_grid.i_max - 1, radar_i)
+            radar_j = min(occupancy_grid.j_max - 1, radar_j)
+            beam = getLineFromGridCoord(robot_i, robot_j, radar_i, radar_j)
+            for pi, pj in beam:
+                if (pi, pj) == (radar_i, radar_j):
+                    occupancy_grid.update(pi, pj, collision)
+                else:
+                    occupancy_grid.update(pi, pj, False)
+        occupancy_grid.plot_occupancy_grid()
     
-    raise NotImplementedError()
     
-def sensor_fusion_occupancy_early(robot, occupancy_grid):
+def sensor_fusion_occupancy_early(robot: Robot, occupancy_grid: OccupancyGrid):
+    
+    laser_scaling = 1 - robot.laser_covariance[0]
+    radar_scaling = 1 - robot.radar_covariance[0]
     
     while True:
         laser_scan, radar_scan = robot.step()
-        break
+        robot_x, robot_y = robot.pose[:2]
         
-    raise NotImplementedError()
+        # Laser Occupancy
+        for i, (range, collision) in enumerate(zip(laser_scan[0], laser_scan[1])):
+            bearing = wrapToPi(robot.pose[2] + robot.laser_angles[i])
+            laser_x = robot_x + range * np.cos(bearing)
+            laser_y = robot_y + range * np.sin(bearing)
+            
+            robot_i, robot_j = occupancy_grid.world_to_ij(robot_x, robot_y)
+            laser_i, laser_j = occupancy_grid.world_to_ij(laser_x, laser_y)
+            laser_i = min(occupancy_grid.i_max - 1, laser_i)
+            laser_j = min(occupancy_grid.j_max - 1, laser_j)
+            beam = getLineFromGridCoord(robot_i, robot_j, laser_i, laser_j)
+            for pi, pj in beam:
+                if (pi, pj) == (laser_i, laser_j):
+                    occupancy_grid.update(pi, pj, collision, scaling=laser_scaling)
+                else:
+                    occupancy_grid.update(pi, pj, False, scaling=laser_scaling)
+                    
+        # Radar Occupancy
+        for i, (range, collision) in enumerate(zip(radar_scan[0], radar_scan[1])):
+            bearing = wrapToPi(robot.pose[2] + robot.radar_angles[i])
+            radar_x = robot_x + range * np.cos(bearing)
+            radar_y = robot_y + range * np.sin(bearing)
+            
+            robot_i, robot_j = occupancy_grid.world_to_ij(robot_x, robot_y)
+            radar_i, radar_j = occupancy_grid.world_to_ij(radar_x, radar_y)
+            radar_i = min(occupancy_grid.i_max - 1, radar_i)
+            radar_j = min(occupancy_grid.j_max - 1, radar_j)
+            beam = getLineFromGridCoord(robot_i, robot_j, radar_i, radar_j)
+            for pi, pj in beam:
+                if (pi, pj) == (radar_i, radar_j):
+                    occupancy_grid.update(pi, pj, collision, scaling=radar_scaling)
+                else:
+                    occupancy_grid.update(pi, pj, False, scaling=radar_scaling)
+        occupancy_grid.plot_occupancy_grid()
+        
     
-def sensor_fusion_occupancy_late(robot, occupancy_grid):
+def sensor_fusion_occupancy_late(robot: Robot, occupancy_grid: OccupancyGrid):
     
+    laser_weighting = 1 / robot.laser_covariance[0]
+    radar_weighting = 1 / robot.radar_covariance[0]
+    total_weight = laser_weighting + radar_weighting
     while True:
+        laser_occupancy: OccupancyGrid = copy.copy(occupancy_grid)
+        radar_occupancy: OccupancyGrid = copy.copy(occupancy_grid)
         laser_scan, radar_scan = robot.step()
-        break
+        robot_x, robot_y = robot.pose[:2]
         
-    raise NotImplementedError()
+        # Laser Occupancy
+        for i, (range, collision) in enumerate(zip(laser_scan[0], laser_scan[1])):
+            bearing = wrapToPi(robot.pose[2] + robot.laser_angles[i])
+            laser_x = robot_x + range * np.cos(bearing)
+            laser_y = robot_y + range * np.sin(bearing)
+            
+            robot_i, robot_j = laser_occupancy.world_to_ij(robot_x, robot_y)
+            laser_i, laser_j = laser_occupancy.world_to_ij(laser_x, laser_y)
+            laser_i = min(laser_occupancy.i_max - 1, laser_i)
+            laser_j = min(laser_occupancy.j_max - 1, laser_j)
+            beam = getLineFromGridCoord(robot_i, robot_j, laser_i, laser_j)
+            for pi, pj in beam:
+                if (pi, pj) == (laser_i, laser_j):
+                    laser_occupancy.update(pi, pj, collision)
+                else:
+                    laser_occupancy.update(pi, pj, False)
+                    
+        # Radar Occupancy
+        for i, (range, collision) in enumerate(zip(radar_scan[0], radar_scan[1])):
+            bearing = wrapToPi(robot.pose[2] + robot.radar_angles[i])
+            radar_x = robot_x + range * np.cos(bearing)
+            radar_y = robot_y + range * np.sin(bearing)
+            
+            robot_i, robot_j = radar_occupancy.world_to_ij(robot_x, robot_y)
+            radar_i, radar_j = radar_occupancy.world_to_ij(radar_x, radar_y)
+            radar_i = min(radar_occupancy.i_max - 1, radar_i)
+            radar_j = min(radar_occupancy.j_max - 1, radar_j)
+            beam = getLineFromGridCoord(robot_i, robot_j, radar_i, radar_j)
+            for pi, pj in beam:
+                if (pi, pj) == (radar_i, radar_j):
+                    radar_occupancy.update(pi, pj, collision)
+                else:
+                    radar_occupancy.update(pi, pj, False)
+                    
+        # Fusion
+        occupancy_grid.grid = (laser_occupancy.grid * laser_weighting 
+                               + radar_occupancy.grid * radar_weighting) / total_weight
+        occupancy_grid.plot_occupancy_grid()
+        # print(occupancy_grid.grid)
+        
 
-if __name__ == "__main__":
-    
+
+if __name__ == "__main__":    
     #load in a map
-    print(os.getcwd())
     mapfile = 'map.png'
-    pathfile = 'map_realistic_path.txt'
+    pathfile = 'map_sporadic_path.txt'
     true_map = Map(mapfile, resolution=0.05, origin='centre')
     path = load_path(pathfile)
     
     bot = Robot(pose = path[0],
                 true_map=true_map,
-                path=path)
+                path=path, 
+                # pose_covariance=[0,0,0],
+                # laser_covariance=[0,0],
+                noise=False)
     
     map_min = list(true_map.to_world(0,0))
     map_max = list(true_map.to_world(true_map.shape[0], true_map.shape[1]))
     map_bounds = [map_min[0], map_min[1], map_max[0], map_max[1]]
     occupancy_grid = OccupancyGrid(map_bounds, resolution=0.05, occupied_threshold=0.7)
     
-    #create the robot
-    # robot = Robot()
     
     #continually update the occupancy map based on sensor measurements
-    laser_scanner_occupancy(bot, occupancy_grid)
+    # laser_scanner_occupancy(bot, occupancy_grid)
+    # radar_occupancy(bot, occupancy_grid)
+    # sensor_fusion_occupancy_early(bot, occupancy_grid)
+    # sensor_fusion_occupancy_late(bot, occupancy_grid)

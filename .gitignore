@@ -3,8 +3,15 @@ enn581/software_task1/workspace.csv
 enn583/kitti/
 *.png
 thesis/data/*
+enn585*/project1/door-expert-v1
+enn585*/project1/FetchSlideDense-*
+enn585*/project1/output/
+
+
+# ros
 *install/
 *log/
+
 # Byte-compiled / optimized / DLL files
 __pcache__/
 *.py[cod]

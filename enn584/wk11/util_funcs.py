@@ -99,7 +99,6 @@ class Robot(object):
         heading = self.pose[2]+self.pose_noise[2]
         for angle in self.laser_angles:
             angle = normal(angle, self.laser_covariance[1])
-            print(wrapToPi(heading+angle))
             
             r, collision = self.map.raycast(self.pose[0]+self.pose_noise[0],
                                              self.pose[1]+self.pose_noise[1],
@@ -108,7 +107,7 @@ class Robot(object):
                                              sensor='laser',
                                              show_ray=show_ray)
             if collision:
-                r += normal(self.laser_covariance[0])
+                r = normal(r, self.laser_covariance[0])
             
             ranges += [r]
             collisions += [collision]
@@ -130,7 +129,7 @@ class Robot(object):
                                              sensor='radar',
                                              show_ray=show_ray)
             if collision:
-                r += normal(self.radar_covariance[0])
+                r = normal(r, self.radar_covariance[0])
             ranges += [r]
             collisions += [collision]
             
@@ -140,11 +139,11 @@ class Robot(object):
 
     
 class Map(object):
-    def __init__(self, filename, resolution, origin='centre'):
+    def __init__(self, filename, resolution, occlusion_prob=0.01, origin='centre'):
         img = Image.open(filename)
-        img = img.convert('1') # to gray image
-        self.gridmap = 1.0 - np.asarray(img)
-        
+        img = img.convert('L') # to gray image
+        self.gridmap = (255 - np.asarray(img))/255
+        self.occlusion_prob = occlusion_prob
         self.copy= np.copy(self.gridmap)
         self.resolution = resolution   # map resolution, m per pixel
         self.shape = self.gridmap.shape
@@ -177,7 +176,6 @@ class Map(object):
             
         row = int(-y/self.resolution) + origin[0]
         col = int(x/self.resolution) + origin[1]
-
         return row, col
 
     def is_inside (self, i, j):
@@ -204,10 +202,16 @@ class Map(object):
         row_list = []
         col_list = []
         collision = False
-        while True:
+        n_steps = 0
+        while True:            
             dist = np.sqrt((j_current - j0)**2 + (i_current - i0)**2)*self.resolution
-            if dist > max_dist:
+            if dist > max_dist or not self.is_inside(i_current, j_current):
                 break
+            
+            if show_ray:
+                row_list += [i_current]
+                col_list += [j_current]
+            
             grid_value = self.gridmap[int(i_current)][int(j_current)]
             if  grid_value == 1:
                 collision = True
@@ -215,7 +219,7 @@ class Map(object):
             
             if sensor == 'laser' and grid_value > 0:
                 #DO THING
-                if uniform() < 0.1:
+                if uniform() < self.occlusion_prob:
                     collision = True
                     break
             
@@ -231,14 +235,11 @@ class Map(object):
                 err += dx
                 i_current += sy
                 
-            if show_ray:
-                row_list += [i_current]
-                col_list += [j_current]
-                
+            n_steps += 1
                 
         if show_ray:
             for i_current, j_current in zip(row_list, col_list):
-                self.copy[i_current, j_current] = 0.5
+                self.copy[i_current, j_current] = 1
             self.show_map()
                 
         return dist, collision
@@ -252,25 +253,54 @@ class Map(object):
 
 
 # Get grid points along line
-def getLine(x0, y0, x1, y1):
-    line = np.empty((0,2), int)
-    dx = x1 - x0
-    dy = y1 - y0
-    D  = 2*dy - dx
-    y = y0
+def getLineFromGridCoord(i0, j0, i1, j1):
+    dx = np.absolute(j1-j0)
+    dy = -1 * np.absolute(i1-i0)
+    sx = 1 if j0<j1 else -1
+    sy = 1 if i0<i1 else -1
     
-    if dy > 0:
-        delta = 1
-    else:
-        delta = -1
+    err = dx+dy
+    i_current, j_current = i0, j0
+    row_list = []
+    col_list = []
+    while True:
+        e2 = 2*err
+        if e2 >= dy:
+            if j_current == j1:
+                break
+            err += dy
+            j_current += sx
+        if e2 <= dx:
+            if i_current == i1:
+                break
+            err += dx
+            i_current += sy
+            
+        row_list += [i_current]
+        col_list += [j_current]
+    return np.array([row_list,col_list]).transpose()
+
+# def getLine(x0, y0, x1, y1):
+#     line = np.empty((0, 2), int)
+#     dx = abs(x1 - x0)
+#     dy = abs(y1 - y0)
+#     sx = 1 if x0 < x1 else -1
+#     sy = 1 if y0 < y1 else -1
+#     err = dx - dy
     
-    for x in np.arange(x0, x1):
-        line = np.vstack([line, [x,y]])
-        if (D > 0):
-            y += delta
-            D -= 2*dx
-        D += 2 * (dy * delta)
-    return line
+#     x, y = x0, y0
+#     while True:
+#         line = np.vstack([line, [x, y]])
+#         if x == x1 and y == y1:
+#             break
+#         e2 = 2 * err
+#         if e2 > -dy:
+#             err -= dy
+#             x += sx
+#         if e2 < dx:
+#             err += dx
+#             y += sy
+#     return line
 
 if __name__ == "__main__":
     #Load in the true map of obstacles from an image
