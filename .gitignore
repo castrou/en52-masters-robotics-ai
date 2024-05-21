@@ -2,8 +2,9 @@
 enn581/software_task1/workspace.csv
 enn583/kitti/
 *.png
-thesis/data/DroneMapper
-
+thesis/data/*
+*install/
+*log/
 # Byte-compiled / optimized / DLL files
 __pcache__/
 *.py[cod]
