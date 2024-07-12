@@ -16,3 +16,6 @@
 [submodule "thesis/zed_ws/src/zed-open-capture"]
 	path = thesis/zed_ws/src/zed-open-capture
 	url = git@github.com:stereolabs/zed-open-capture.git
+[submodule "thesis/zed_ws/src/ros2_bag_to_image"]
+	path = thesis/zed_ws/src/ros2_bag_to_image
+	url = https://github.com/MapIV/ros2_bag_to_image.git

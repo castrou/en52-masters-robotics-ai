@@ -161,7 +161,6 @@ def laser_scanner_occupancy(robot: Robot, occupancy_grid: OccupancyGrid):
 
 
 def radar_occupancy(robot: Robot, occupancy_grid: OccupancyGrid):
-    
     while True:
         _, radar_scan = robot.step()
         robot_x, robot_y = robot.pose[:2]
@@ -184,7 +183,6 @@ def radar_occupancy(robot: Robot, occupancy_grid: OccupancyGrid):
     
     
 def sensor_fusion_occupancy_early(robot: Robot, occupancy_grid: OccupancyGrid):
-    
     laser_scaling = 1 - robot.laser_covariance[0]
     radar_scaling = 1 - robot.radar_covariance[0]
     
@@ -229,7 +227,6 @@ def sensor_fusion_occupancy_early(robot: Robot, occupancy_grid: OccupancyGrid):
         
     
 def sensor_fusion_occupancy_late(robot: Robot, occupancy_grid: OccupancyGrid):
-    
     laser_weighting = 1 / robot.laser_covariance[0]
     radar_weighting = 1 / robot.radar_covariance[0]
     total_weight = laser_weighting + radar_weighting
@@ -283,9 +280,9 @@ def sensor_fusion_occupancy_late(robot: Robot, occupancy_grid: OccupancyGrid):
 
 if __name__ == "__main__":    
     #load in a map
-    mapfile = 'map.png'
-    pathfile = 'map_sporadic_path.txt'
-    true_map = Map(mapfile, resolution=0.05, origin='centre')
+    mapfile = 'map1_cloudy.png'
+    pathfile = 'map1_path.txt'
+    true_map = Map(mapfile, resolution=0.02, origin='centre', occlusion_prob=0.05)
     path = load_path(pathfile)
     
     bot = Robot(pose = path[0],
@@ -293,7 +290,7 @@ if __name__ == "__main__":
                 path=path, 
                 # pose_covariance=[0,0,0],
                 # laser_covariance=[0,0],
-                noise=False)
+                noise=True)
     
     map_min = list(true_map.to_world(0,0))
     map_max = list(true_map.to_world(true_map.shape[0], true_map.shape[1]))
@@ -305,4 +302,4 @@ if __name__ == "__main__":
     # laser_scanner_occupancy(bot, occupancy_grid)
     # radar_occupancy(bot, occupancy_grid)
     # sensor_fusion_occupancy_early(bot, occupancy_grid)
-    # sensor_fusion_occupancy_late(bot, occupancy_grid)
+    sensor_fusion_occupancy_late(bot, occupancy_grid)
